@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>UEC Student Result Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>
+*{box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{margin:0;background:#2f528f;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.card{background:#eee;width:420px;border-radius:12px;padding:30px;text-align:center;}
+.logo{width:90px;margin-bottom:10px;}
+input{width:100%;padding:12px;margin:8px 0;border-radius:6px;border:1px solid #ccc;}
+button{width:100%;padding:12px;margin-top:10px;background:#345a9d;border:none;color:white;border-radius:6px;cursor:pointer;font-size:15px;}
+button:hover{background:#274a86;}
+.logout{background:#777;}
+.appeal{background:#d35400;}
+.appeal:hover{background:#b84300;}
+.studentPhoto{width:120px;height:120px;border-radius:50%;margin:auto;display:block;}
+table{width:100%;border-collapse:collapse;margin-top:20px;}
+th{background:#4e81bd;color:white;padding:10px;}
+td{padding:10px;border:1px solid #ddd;}
+.footer{margin-top:30px;color:white;font-size:14px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="card" id="loginBox">
+<img src="logo.png" class="logo">
+<h2>🎓 University of East Capital</h2>
+<p>Student Result Portal</p>
+<input id="id" placeholder="Student ID">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<div class="card" id="firstLoginBox" style="display:none">
+<img src="logo.png" class="logo">
+<h2>Welcome to UEC Result Portal</h2>
+<p>Please set your new password</p>
+<input id="newPass" type="password" placeholder="New Password">
+<input id="confirmPass" type="password" placeholder="Confirm Password">
+<button onclick="submitNewPassword()">Submit</button>
+</div>
+
+<div class="card" id="loadingBox" style="display:none">
+  <h3>Loading your data...</h3>
+</div>
+
+<div class="card" id="resultBox" style="display:none">
+<img id="photo" class="studentPhoto">
+<h3 id="name"></h3>
+<p id="sid"></p>
+<table id="resultTable">
+<tr><th>Course</th><th>Grade</th></tr>
+</table>
+<h3>GPA : <span id="gpa"></span></h3>
+<button onclick="downloadPDF()">Download Official Result</button>
+<button class="appeal" onclick="openAppeal()">Submit Appeal</button>
+<button class="logout" onclick="logout()">Logout</button>
+<p style="margin-top:15px;font-size:13px;color:#555"> BL = Failed bylaw (Failed in the written Exam) </p>
+</div>
+
+<div class="footer">
+Designed by UEC ICT Department<br>
+© 2026 University of East Capital
+</div>
+
+<script>
+const API="https://script.google.com/macros/s/AKfycbzs5LlAM9m4zLbX1IOpMYi5-ySKvW3IEA_lIQWhH6Hsb-XJgm3Amnnlu7RAlYLTCD2W/exec";
+let currentStudent=null;
+
+async function login(){
+  let id=document.getElementById("id").value;
+  let pass=document.getElementById("pass").value;
+
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("loadingBox").style.display="block";
+
+  try{
+    let res=await fetch(API,{method:"POST",body:JSON.stringify({action:"login",id:id,password:pass})});
+    let data=await res.json();
+    document.getElementById("loadingBox").style.display="none";
+
+    if(data.status=="success"){
+      currentStudent = data.student;
+      localStorage.setItem("student",JSON.stringify(currentStudent));
+
+      if(data.student.firstLogin === false){
+        showFirstLoginCard(currentStudent.id);
+      }else{
+        showResult(currentStudent);
+      }
+
+    }else{
+      alert("Invalid ID or Password");
+      document.getElementById("loginBox").style.display="block";
+    }
+  }catch(err){
+    //alert("Error connecting to server");
+    alert("The results are not yet released. Please check back later");
+    document.getElementById("loginBox").style.display="block";
+  }
+}
+
+function showFirstLoginCard(studentId){
+  document.getElementById("firstLoginBox").style.display="block";
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("resultBox").style.display="none";
+
+  window.submitNewPassword = async function(){
+    const newPass=document.getElementById("newPass").value.trim();
+    const confirmPass=document.getElementById("confirmPass").value.trim();
+    if(newPass==""||confirmPass==""){ alert("Password fields cannot be empty"); return; }
+    if(newPass!==confirmPass){ alert("Passwords do not match!"); return; }
+
+    const res=await fetch(API,{method:"POST",body:JSON.stringify({action:"updatePassword",studentId:studentId,newPassword:newPass})});
+    const result=await res.json();
+    if(result.status=="success"){
+      alert("Password updated successfully. Please login again.");
+      location.reload();
+    }else{
+      alert("Error updating password. Try again.");
+    }
+  }
+}
+
+function showResult(s){
+  document.getElementById("resultBox").style.display="block";
+  document.getElementById("name").innerText=s.name;
+  document.getElementById("sid").innerText="Student ID: "+s.id;
+  document.getElementById("gpa").innerText=s.gpa;
+  document.getElementById("photo").src="https://amrattiaewais69-gif.github.io/student-results/photos/"+s.id+".jpg";
+
+  let table=document.getElementById("resultTable");
+  table.innerHTML='<tr><th>Course</th><th>Grade</th></tr>';
+  for(let c in s.courses){
+    table.innerHTML+=`<tr><td>${c}</td><td>${s.courses[c]}</td></tr>`;
+  }
+}
+
+function openAppeal(){ window.location="appeal.html"; }
+function logout(){ localStorage.clear(); location.reload(); }
+
+async function downloadPDF(){
+
+if(!currentStudent){
+alert("Session expired. Please login again.");
+logout();
+return;
+}
+
+const {jsPDF}=window.jspdf;
+const doc=new jsPDF();
+
+
+// =========================
+// UNIVERSITY LOGO
+// =========================
+const logoUrl="https://amrattiaewais69-gif.github.io/student-results/logo.png";
+const logoRes=await fetch(logoUrl);
+const logoBlob=await logoRes.blob();
+const logoReader=new FileReader();
+
+logoReader.onloadend=async function(){
+
+doc.addImage(logoReader.result,"PNG",15,10,30,30);
+
+
+// =========================
+// HEADER
+// =========================
+doc.setFont("helvetica","bold");
+doc.setFontSize(22);
+doc.setTextColor(0,51,102);
+doc.text("University of East Capital",105,25,{align:"center"});
+
+doc.setFontSize(16);
+doc.setTextColor(0,0,0);
+doc.text("Final Result for Semester 1",105,35,{align:"center"});
+
+
+// =========================
+// STUDENT INFO
+// =========================
+doc.setFontSize(12);
+doc.setFont("helvetica","bold");
+doc.text("Student Name:",20,55);
+doc.text("Student ID:",20,65);
+
+doc.setFont("helvetica","normal");
+doc.text(currentStudent.name,60,55);
+doc.text(currentStudent.id,60,65);
+
+
+// =========================
+// STUDENT PHOTO
+// =========================
+const imgUrl="https://amrattiaewais69-gif.github.io/student-results/photos/"+currentStudent.id+".jpg";
+
+try{
+
+const imgRes=await fetch(imgUrl);
+const imgBlob=await imgRes.blob();
+const reader=new FileReader();
+
+reader.onloadend=function(){
+
+doc.addImage(reader.result,"JPEG",160,50,30,35);
+
+drawTable();
+
+};
+
+reader.readAsDataURL(imgBlob);
+
+}catch(e){
+
+drawTable();
+
+}
+
+
+function drawTable(){
+
+// =========================
+// COURSES TABLE
+// =========================
+const body=[];
+
+for(let c in currentStudent.courses){
+
+body.push([c,currentStudent.courses[c]]);
+
+}
+
+body.push(["GPA",currentStudent.gpa]);
+
+
+doc.autoTable({
+
+startY:90,
+
+head:[["Course","Grade"]],
+
+body:body,
+
+theme:"grid",
+
+headStyles:{
+fillColor:[0,70,140],
+textColor:255,
+halign:"center",
+fontStyle:"bold",
+fontSize:14
+},
+
+bodyStyles:{
+halign:"center",
+fontSize:12,
+cellPadding:3
+},
+
+alternateRowStyles:{
+fillColor:[245,247,250]
+},
+
+columnStyles:{
+0:{cellWidth:130},
+1:{cellWidth:40}
+}
+
+});
+
+
+
+// =========================
+// SIGNATURE
+// =========================
+let y=doc.lastAutoTable.finalY+20;
+
+doc.line(130,y,190,y);
+
+doc.setFontSize(11);
+doc.text("Controller of Examinations Unit",160,y+8,{align:"center"});
+
+
+// =========================
+// QR CODE
+// =========================
+const verifyLink="https://amrattiaewais69-gif.github.io/student-results/verify.html?id="+currentStudent.id;
+
+const qrImage="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data="+encodeURIComponent(verifyLink);
+
+const qr=new Image();
+
+qr.crossOrigin="Anonymous";
+
+qr.onload=function(){
+
+doc.addImage(qr,"PNG",20,y-10,35,35);
+
+doc.setFontSize(10);
+
+doc.text("Scan to Verify Result",37,y+30,{align:"center"});
+
+
+// =========================
+// BL TEXT
+// =========================
+doc.setFontSize(12);
+
+doc.text("BL = Failed bylaw (Failed in the written Exam)",105,260,{align:"center"});
+
+// تحديد مكان الخط
+let lineY = 275; // موقع الخط الرأسي، قبل نص الفوتر
+
+// رسم الخط الأفقي
+doc.setDrawColor(0, 0, 0); // لون الخط أسود
+doc.setLineWidth(0.3);      // سمك الخط
+doc.line(20, lineY, 190, lineY); // من x=20 لـ x=190 على نفس الy
+
+// إضافة نص الفوتر
+doc.setFontSize(10);
+doc.setTextColor(0, 0, 0);
+doc.text(
+  "University of East Capital | Cairo – Egypt | www.uec.edu.eg | Hotline: 17523",
+  105,
+  280,
+  { align: "center" }
+);
+
+// =========================
+// SAVE PDF
+// =========================
+doc.save(currentStudent.id+"_UEC_Result.pdf");
+
+};
+
+qr.src=qrImage;
+
+}
+
+};
+
+logoReader.readAsDataURL(logoBlob);
+
+}
+</script>
+
+</body>
+</html>

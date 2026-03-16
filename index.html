@@ -68,7 +68,7 @@ Designed by UEC ICT Department<br>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbzs5LlAM9m4zLbX1IOpMYi5-ySKvW3IEA_lIQWhH6Hsb-XJgm3Amnnlu7RAlYLTCD2W/exec";
+const API="https://script.google.com/macros/s/AKfycbzQEhrvSLTdOMKXuH_H8gS3vXUKK4jgl4jjLL2KAkWNbFGe8bsF2ggcLiT3TWnkMX7bew/exec";
 let currentStudent=null;
 
 async function login(){
@@ -131,7 +131,7 @@ function showResult(s){
   document.getElementById("name").innerText=s.name;
   document.getElementById("sid").innerText="Student ID: "+s.id;
   document.getElementById("gpa").innerText=s.gpa;
-  document.getElementById("photo").src="https://amrattiaewais69-gif.github.io/student-results/photos/"+s.id+".jpg";
+  document.getElementById("photo").src="https://amrattiaewais69-gif.github.io/student-final-result/photos/"+s.id+".jpg";
 
   let table=document.getElementById("resultTable");
   table.innerHTML='<tr><th>Course</th><th>Grade</th></tr>';
@@ -158,7 +158,7 @@ const doc=new jsPDF();
 // =========================
 // UNIVERSITY LOGO
 // =========================
-const logoUrl="https://amrattiaewais69-gif.github.io/student-results/logo.png";
+const logoUrl="https://amrattiaewais69-gif.github.io/student-final-result/logo.png";
 const logoRes=await fetch(logoUrl);
 const logoBlob=await logoRes.blob();
 const logoReader=new FileReader();
@@ -197,7 +197,7 @@ doc.text(currentStudent.id,60,65);
 // =========================
 // STUDENT PHOTO
 // =========================
-const imgUrl="https://amrattiaewais69-gif.github.io/student-results/photos/"+currentStudent.id+".jpg";
+const imgUrl="https://amrattiaewais69-gif.github.io/student-final-result/photos/"+currentStudent.id+".jpg";
 
 try{
 
@@ -289,7 +289,7 @@ doc.text("Controller of Examinations Unit",160,y+8,{align:"center"});
 // =========================
 // QR CODE
 // =========================
-const verifyLink="https://amrattiaewais69-gif.github.io/student-results/verify.html?id="+currentStudent.id;
+const verifyLink="https://amrattiaewais69-gif.github.io/student-final-result/verify.html?id="+currentStudent.id;
 
 const qrImage="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data="+encodeURIComponent(verifyLink);
 

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>UEC Accountant Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;font-family:'Poppins',sans-serif}
+
+body{
+margin:0;
+background:#2f528f;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+}
+
+.card{
+background:#eee;
+width:480px;
+border-radius:12px;
+padding:30px;
+text-align:center;
+}
+
+.logo{
+width:90px;
+margin-bottom:10px;
+}
+
+input,select{
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#345a9d;
+border:none;
+color:white;
+border-radius:6px;
+cursor:pointer;
+font-size:15px;
+}
+
+button:hover{
+background:#274a86;
+}
+
+.studentPhoto{
+width:120px;
+height:120px;
+border-radius:50%;
+margin:auto;
+display:none;
+}
+
+.footer{
+margin-top:30px;
+color:white;
+font-size:14px;
+text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<div class="card" id="loginBox">
+
+<img src="https://amrattiaewais69-gif.github.io/student-results/logo.png" class="logo">
+
+<h2>Accountant Login</h2>
+
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+</div>
+
+
+<!-- MAIN -->
+
+<div class="card" id="mainBox" style="display:none">
+
+<img src="https://amrattiaewais69-gif.github.io/student-results/logo.png" class="logo">
+
+<h2>Record Appeal Payment</h2>
+
+<input id="studentId" placeholder="Student ID">
+
+<button onclick="loadStudent()">Load Student</button>
+
+<img id="photo" class="studentPhoto">
+
+<input id="studentName" readonly placeholder="Student Name">
+
+<select id="courseSelect"></select>
+
+<input id="amount" placeholder="Payment Amount">
+
+<button onclick="savePayment()">Save Payment</button>
+
+<button onclick="exportPayments()">Export Payments Excel</button>
+
+<button onclick="logout()">Logout</button>
+
+</div>
+
+
+<div class="footer">
+UEC ICT Department<br>
+© 2026 University of East Capital
+</div>
+
+
+<script>
+
+const API="https://script.google.com/macros/s/AKfycbzs5LlAM9m4zLbX1IOpMYi5-ySKvW3IEA_lIQWhH6Hsb-XJgm3Amnnlu7RAlYLTCD2W/exec";
+
+let currentStudent=null;
+
+
+
+// ================= LOGIN =================
+
+async function login(){
+
+const username=document.getElementById("username").value.trim();
+const password=document.getElementById("password").value.trim();
+
+const res=await fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"verifyAccount",
+username:username,
+password:password
+})
+});
+
+const data=await res.json();
+
+if(data.status==="success"){
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("mainBox").style.display="block";
+
+}else{
+
+alert("Invalid username or password");
+
+}
+
+}
+
+
+
+// ================= LOAD STUDENT =================
+
+async function loadStudent(){
+
+const id=document.getElementById("studentId").value.trim();
+
+if(id===""){
+alert("Enter Student ID");
+return;
+}
+
+const res=await fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"verifyStudent",
+id:id
+})
+});
+
+const data=await res.json();
+
+if(data.status==="success"){
+
+currentStudent=data.student;
+
+document.getElementById("studentName").value=currentStudent.name;
+
+const photo=document.getElementById("photo");
+photo.src="https://amrattiaewais69-gif.github.io/student-results/photos/"+currentStudent.id+".jpg";
+photo.style.display="block";
+
+
+/* تحميل المواد */
+
+const select=document.getElementById("courseSelect");
+select.innerHTML="";
+
+for(let course in currentStudent.courses){
+
+let option=document.createElement("option");
+option.value=course;
+option.text=course;
+
+select.appendChild(option);
+
+}
+
+}else{
+
+alert("Student not found");
+
+}
+
+}
+
+
+
+// ================= SAVE PAYMENT =================
+
+async function savePayment(){
+
+if(!currentStudent){
+alert("Load student first");
+return;
+}
+
+const course=document.getElementById("courseSelect").value;
+const amount=document.getElementById("amount").value;
+
+const res=await fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"savePayment",
+studentId:currentStudent.id,
+studentName:currentStudent.name,
+course:course,
+amount:amount
+})
+});
+
+const data=await res.json();
+
+if(data.status==="success"){
+
+alert("Payment saved successfully");
+
+document.getElementById("amount").value="";
+
+}else{
+
+alert("This course has already been paid");
+
+}
+
+}
+
+
+
+// ================= EXPORT EXCEL =================
+
+function exportPayments(){
+
+const sheetID="14IW4oA1wo_-PyUXQMQdIEwoLcTu1nB4Yfz2PnGZeATM";
+
+const url=`https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=Payments`;
+
+const link=document.createElement("a");
+
+link.href=url;
+
+link.download="UEC_Payments.csv";
+
+link.click();
+
+}
+
+
+
+// ================= LOGOUT =================
+
+function logout(){
+
+location.reload();
+
+}
+
+</script>
+
+</body>
+</html>

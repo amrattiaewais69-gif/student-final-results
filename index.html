@@ -45,7 +45,7 @@ td{padding:10px;border:1px solid #ddd;}
 </div>
 
 <div class="card" id="loadingBox" style="display:none">
-  <h3>Loading your data...</h3>
+  <h3>Please wait while we load your results...</h3>
 </div>
 
 <div class="card" id="resultBox" style="display:none">
@@ -56,6 +56,7 @@ td{padding:10px;border:1px solid #ddd;}
 <tr><th>Course</th><th>Grade</th></tr>
 </table>
 <h3>GPA : <span id="gpa"></span></h3>
+<button onclick="downloadPDF()">Download Official Result</button>
 <button class="appeal" onclick="openAppeal()">Submit Appeal</button>
 <button class="logout" onclick="logout()">Logout</button>
 <p style="margin-top:15px;font-size:13px;color:#555"> BL = Failed bylaw (Failed in the written Exam) </p>
@@ -97,8 +98,8 @@ async function login(){
       document.getElementById("loginBox").style.display="block";
     }
   }catch(err){
-    //alert("Error connecting to server");
-    alert("The results are not yet released. Please check back later");
+    alert("Error connecting to server");
+   // alert("The results are not yet released. Please check back later");
     document.getElementById("loginBox").style.display="block";
   }
 }
@@ -130,7 +131,7 @@ function showResult(s){
   document.getElementById("name").innerText=s.name;
   document.getElementById("sid").innerText="Student ID: "+s.id;
   document.getElementById("gpa").innerText=s.gpa;
-  document.getElementById("photo").src="https://amrattiaewais69-gif.github.io/student-final-result/photos/"+s.id+".jpg";
+  document.getElementById("photo").src="https://amrattiaewais69-gif.github.io/student-final-results/photos/"+s.id+".jpg";
 
   let table=document.getElementById("resultTable");
   table.innerHTML='<tr><th>Course</th><th>Grade</th></tr>';
@@ -157,7 +158,7 @@ const doc=new jsPDF();
 // =========================
 // UNIVERSITY LOGO
 // =========================
-const logoUrl="https://amrattiaewais69-gif.github.io/student-final-result/logo.png";
+const logoUrl="https://amrattiaewais69-gif.github.io/student-final-results/logo.png";
 const logoRes=await fetch(logoUrl);
 const logoBlob=await logoRes.blob();
 const logoReader=new FileReader();
@@ -196,7 +197,7 @@ doc.text(currentStudent.id,60,65);
 // =========================
 // STUDENT PHOTO
 // =========================
-const imgUrl="https://amrattiaewais69-gif.github.io/student-final-result/photos/"+currentStudent.id+".jpg";
+const imgUrl="https://amrattiaewais69-gif.github.io/student-final-results/photos/"+currentStudent.id+".jpg";
 
 try{
 
@@ -288,7 +289,7 @@ doc.text("Controller of Examinations Unit",160,y+8,{align:"center"});
 // =========================
 // QR CODE
 // =========================
-const verifyLink="https://amrattiaewais69-gif.github.io/student-final-result/verify.html?id="+currentStudent.id;
+const verifyLink="https://amrattiaewais69-gif.github.io/student-final-results/verify.html?id="+currentStudent.id;
 
 const qrImage="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data="+encodeURIComponent(verifyLink);
 

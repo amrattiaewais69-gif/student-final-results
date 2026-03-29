@@ -102,8 +102,8 @@ async function loadAppeals(){
         <select id="status_${a.studentId}_${a.course}">
           <option value="Pending" ${a.status==="Pending"?"selected":""}>Pending</option>
           <option value="Under Review">Under Review</option>
-          <option value="Accepted">Accepted</option>
-          <option value="Rejected">Rejected</option>
+          <option value="Revised with change">Revised with change</option>
+          <option value="Revised without change">Revised without change</option>
         </select>
       </td>
       <td><button onclick="updateStatus('${a.studentId}','${a.course}')">Save</button></td>
